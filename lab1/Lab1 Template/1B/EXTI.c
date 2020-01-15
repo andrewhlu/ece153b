@@ -31,7 +31,6 @@ void EXTI_Init(void) {
 	SYSCFG -> EXTICR[0] |= SYSCFG_EXTICR1_EXTI1_PA;
 	SYSCFG -> EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI2;
 	SYSCFG -> EXTICR[0] |= SYSCFG_EXTICR1_EXTI2_PA;
-	// may have to change
 	
 	// Configure EXTI Trigger
 	EXTI -> FTSR1 |= EXTI_FTSR1_FT0;

@@ -1,8 +1,8 @@
 /*
  * ECE 153B - Winter 2020
  *
- * Name(s):
- * Section:
+ * Name(s): Norman Chung, Andrew Lu
+ * Section: Wed 7-9:50 PM
  * Lab: 1C
  */
 
@@ -12,20 +12,20 @@
 
 void System_Clock_Init(void) {
 	// Select MSI as system clock source
-	RCC->CFGR |= 0; // TODO - Replace with value that will make MSI the system clock source
+	RCC -> CFGR |= RCC_CFGR_SW_MSI;
 	
 	// Set MSI clock range
-	RCC->CR &= ~RCC_CR_MSIRANGE;
-	RCC->CR |= 0; // TODO - Replace with value that will make range 8 MHz
+	RCC -> CR &= ~RCC_CR_MSIRANGE;
+	RCC -> CR |= RCC_CR_MSIRANGE_7;
 	
 	// Use the MSI clock range that is defined in RCC_CR
-	RCC->CR |= 0; // TODO - Replace with value that will select range in RCC->CR
+	RCC -> CR |= RCC_CR_MSIRGSEL;
 	
 	// Enable MSI oscillator
-	RCC->CR |= 0; // TODO - Replace with value that will enable MSI
+	RCC -> CR |= RCC_CR_MSION;
 	
 	// Wait until MSI is ready
-	while((RCC->CR & 0 /* TODO - Replace with value that checks whether MSI is ready */) == 0);
+	while((RCC -> CR & RCC_CR_MSIRDY) == 0);
 }
 
 int main() {
@@ -35,6 +35,7 @@ int main() {
 	LED_Init();
 	
 	while(1) {
-		// Write Simple Program here...
+		delay(1000);
+		Red_LED_Toggle();
 	}
 }
