@@ -1,8 +1,8 @@
 /*
  * ECE 153B - Winter 2020
  *
- * Name(s):
- * Section:
+ * Name(s): Norman Chung, Andrew Lu
+ * Section: Wed 7-9:50 PM
  * Lab: 1B
  */
 
