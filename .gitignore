@@ -1,0 +1,9 @@
+*DebugConfig/
+*Listings/
+*Objects/
+*RTE/
+*.scvd
+*.uvguix*
+*.uvoptx
+*.uvprojx
+*.zip
