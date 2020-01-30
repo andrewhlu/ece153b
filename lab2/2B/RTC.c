@@ -66,10 +66,10 @@ void RTC_Init(void) {
 	// Configure the Date 
 	/* Note: __LL_RTC_CONVERT_BIN2BCD helper macro can be used if user wants to */
 	/*       provide directly the decimal value:                                */
-	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x01, RTC_MONTH_JANUARY, 0x20); /* STUB (Wednesday January 1, 2020): Fill in current date */
+	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x31, RTC_MONTH_MARCH, 0x20); /* STUB (Wednesday January 1, 2020): Fill in current date */
 	
 	// Configure the Time 
-	RTC_Set_Time(RTC_TR_PM, 0x07, 0x0C, 0x23); /* STUB (7:00:00 PM): Fill in current time */
+	RTC_Set_Time(RTC_TR_PM, 0x10, 0x33, 0x05); /* STUB (7:00:00 PM): Fill in current time */
   
 	// Exit of initialization mode 
 	RTC->ISR &= ~RTC_ISR_INIT;
@@ -101,37 +101,11 @@ void RTC_Init(void) {
 #define RTC_POSITION_DR_WDU   (uint32_t)POSITION_VAL(RTC_DR_WDU)
 
 void RTC_Set_Calendar_Date(uint32_t WeekDay, uint32_t Day, uint32_t Month, uint32_t Year) {
-	// TODO -- Write the date values in the correct place within the RTC Date Register
+	RTC -> DR |= (WeekDay << RTC_POSITION_DR_WDU) | Day | (Month << RTC_POSITION_DR_MU) | (Year << RTC_POSITION_DR_YU);
 }
 
 void RTC_Set_Time(uint32_t Format12_24, uint32_t Hour, uint32_t Minute, uint32_t Second) {
-	// Reset the entire register
-	// RTC -> TR &= ~(RTC_TR_PM | RTC_TR_HT | RTC_TR_HU | RTC_TR_MNT | RTC_TR_MNU | RTC_TR_ST | RTC_TR_SU);
-
-	// Set PM flag
-	RTC -> TR |= Format12_24;
-
-	// Set hours tens digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Hour / 10) << 20;
-
-	// Set hours units digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Hour % 10) << 16;
-
-	// Set minutes tens digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Minute / 10) << 12;
-
-	// Set minutes units digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Minute % 10) << 8;
-
-	// Set seconds tens digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Second / 10) << 4;
-
-	// Set seconds units digit
-	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Second % 10);
-}
-
-void test(char* strTime) {
-	sprintf((char*)strTime, "%d", __RTC_CONVERT_BIN2BCD((uint32_t)0x23 / 10) << 4);
+	RTC -> TR |= Format12_24 | (Hour << RTC_POSITION_TR_HU) | (Minute << RTC_POSITION_TR_MU) | Second;
 }
 
 void RTC_Clock_Init(void) {
@@ -181,31 +155,31 @@ void RTC_Enable_Write_Protection(void) {
 }
 
 uint32_t RTC_TIME_GetHour(void) {
-	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_HT) >> 20) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_HU) >> 16);
+	return (((RTC -> TR) & RTC_TR_HT) >> RTC_POSITION_TR_HT << 4) | (((RTC -> TR) & RTC_TR_HU) >> RTC_POSITION_TR_HU);
 }
 
 uint32_t RTC_TIME_GetMinute(void) {
-	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_MNT) >> 12) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_MNU) >> 8);
+	return (((RTC -> TR) & RTC_TR_MNT) >> RTC_POSITION_TR_MT << 4) | (((RTC -> TR) & RTC_TR_MNU) >> RTC_POSITION_TR_MU);
 }
 
 uint32_t RTC_TIME_GetSecond(void) {
-	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_ST) >> 4) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_SU));
+	return (((RTC -> TR) & RTC_TR_ST) >> RTC_POSITION_TR_ST << 4) | (((RTC -> TR) & RTC_TR_SU) >> RTC_POSITION_TR_SU);
 }
 
 uint32_t RTC_DATE_GetMonth(void) {
-	// TODO
+	return (((RTC -> DR) & RTC_DR_MT) >> RTC_POSITION_DR_MT << 4) | (((RTC -> DR) & RTC_DR_MU) >> RTC_POSITION_DR_MU);
 }
 
 uint32_t RTC_DATE_GetDay(void) {
-	// TODO
+	return (((RTC -> DR) & RTC_DR_DT) >> RTC_POSITION_DR_DT << 4) | (((RTC -> DR) & RTC_DR_DU) >> RTC_POSITION_DR_DU);
 }
 
 uint32_t RTC_DATE_GetYear(void) {
-	// TODO
+	return (((RTC -> DR) & RTC_DR_YT) >> RTC_POSITION_DR_YT << 4) | (((RTC -> DR) & RTC_DR_YU) >> RTC_POSITION_DR_YU);
 }
 
 uint32_t RTC_DATE_GetWeekDay(void) {
-	// TODO
+	return ((RTC -> DR) & RTC_DR_WDU) >> RTC_POSITION_DR_WDU;
 }
 
 void Get_RTC_Calendar(char * strTime, char * strDate) {
@@ -216,7 +190,7 @@ void Get_RTC_Calendar(char * strTime, char * strDate) {
 		__RTC_CONVERT_BCD2BIN(RTC_TIME_GetMinute()), 
 		__RTC_CONVERT_BCD2BIN(RTC_TIME_GetSecond()));
 	/* Display date Format : mm-dd-yy */
-	sprintf((char*)strDate,"%.2d-%.2d-%.2d", 
+	sprintf((char*)strDate,"%.2d%.2d%.2d", 
 		__RTC_CONVERT_BCD2BIN(RTC_DATE_GetMonth()), 
 		__RTC_CONVERT_BCD2BIN(RTC_DATE_GetDay()), 
 		2000 + __RTC_CONVERT_BCD2BIN(RTC_DATE_GetYear()));
