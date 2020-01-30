@@ -33,10 +33,9 @@ void PWM_Init() {
 	TIM1 -> CR1 &= ~TIM_CR1_DIR;
 	//(b) Set the prescaler value.
 	TIM1 -> PSC &= ~TIM_PSC_PSC;
-	// TIM1 -> PSC |= (uint32_t)0x00000007U;
 	//(c) Set the auto-reload value.
 	TIM1 -> ARR &= ~TIM_ARR_ARR;
-	TIM1 -> ARR |= (uint32_t)0x0000FFFFU;
+	TIM1 -> ARR |= (uint32_t)1000;
 	// (d) Clear the output compare mode bits for channel 1
 	TIM1 -> CCMR1 &= ~TIM_CCMR1_OC1M;
 	// (d) Set the output compare mode bits to PWM mode 1.
@@ -49,10 +48,10 @@ void PWM_Init() {
 	//(f) Enable the output for channel 1N.
 	TIM1 -> CCER |= TIM_CCER_CC1NE;
 	//(g) Enable the main output.
-	TIM1 -> CCER |= TIM_CCER_CC1E;
+	TIM1 -> BDTR |= TIM_BDTR_MOE;
 	//(h) Set the capture/compare value. For now, set it such that the duty cycle of the PWM output is 50%.
 	TIM1 -> CCR1 &= ~TIM_CCR1_CCR1;
-	TIM1 -> CCR1 |= (uint32_t)0x00008000U;
+	// TIM1 -> CCR1 |= (uint32_t)500;
 	//(i) Enable the counter.
 	TIM1 -> CR1 |= TIM_CR1_CEN;
 }
@@ -63,8 +62,12 @@ int main() {
 	
 	// Periodic Dimming
 	int i;
+	uint32_t arr = 1000;
+	uint32_t ccr = 0;
 	while(1) {
-		// TODO (changing duty cycle, etc.)
+		// Change duty cycle
+		TIM1 -> CCR1 = ccr % arr;
+		ccr += 1;
 		
 		for(i=0; i<1000; ++i); // Some Delay
 	}
