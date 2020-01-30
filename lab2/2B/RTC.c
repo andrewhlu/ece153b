@@ -69,7 +69,7 @@ void RTC_Init(void) {
 	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x01, RTC_MONTH_JANUARY, 0x20); /* STUB (Wednesday January 1, 2020): Fill in current date */
 	
 	// Configure the Time 
-	RTC_Set_Time(RTC_TR_PM, 0x07, 0x00, 0x00); /* STUB (7:00:00 PM): Fill in current time */
+	RTC_Set_Time(RTC_TR_PM, 0x07, 0x0C, 0x23); /* STUB (7:00:00 PM): Fill in current time */
   
 	// Exit of initialization mode 
 	RTC->ISR &= ~RTC_ISR_INIT;
@@ -105,7 +105,33 @@ void RTC_Set_Calendar_Date(uint32_t WeekDay, uint32_t Day, uint32_t Month, uint3
 }
 
 void RTC_Set_Time(uint32_t Format12_24, uint32_t Hour, uint32_t Minute, uint32_t Second) {
-	// TODO -- Write the time values in the correct place within the RTC Time Register
+	// Reset the entire register
+	// RTC -> TR &= ~(RTC_TR_PM | RTC_TR_HT | RTC_TR_HU | RTC_TR_MNT | RTC_TR_MNU | RTC_TR_ST | RTC_TR_SU);
+
+	// Set PM flag
+	RTC -> TR |= Format12_24;
+
+	// Set hours tens digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Hour / 10) << 20;
+
+	// Set hours units digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Hour % 10) << 16;
+
+	// Set minutes tens digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Minute / 10) << 12;
+
+	// Set minutes units digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Minute % 10) << 8;
+
+	// Set seconds tens digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Second / 10) << 4;
+
+	// Set seconds units digit
+	RTC -> TR |= __RTC_CONVERT_BIN2BCD(Second % 10);
+}
+
+void test(char* strTime) {
+	sprintf((char*)strTime, "%d", __RTC_CONVERT_BIN2BCD((uint32_t)0x23 / 10) << 4);
 }
 
 void RTC_Clock_Init(void) {
@@ -146,23 +172,24 @@ void RTC_Clock_Init(void) {
 }
 
 void RTC_Disable_Write_Protection(void) {
-	// TODO
+	RTC -> WPR = 0xCAU;
+	RTC -> WPR = 0x53U;
 }
 	
 void RTC_Enable_Write_Protection(void) {
-	// TODO
+	RTC -> WPR = 0x00U;
 }
 
 uint32_t RTC_TIME_GetHour(void) {
-	// TODO
+	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_HT) >> 20) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_HU) >> 16);
 }
 
 uint32_t RTC_TIME_GetMinute(void) {
-	// TODO
+	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_MNT) >> 12) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_MNU) >> 8);
 }
 
 uint32_t RTC_TIME_GetSecond(void) {
-	// TODO
+	return __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_ST) >> 4) * 10 + __RTC_CONVERT_BCD2BIN(((RTC -> TR) & RTC_TR_SU));
 }
 
 uint32_t RTC_DATE_GetMonth(void) {

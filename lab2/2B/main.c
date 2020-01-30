@@ -40,5 +40,9 @@ int main(void) {
 	
 	while(1) {
 		// TODO
+		// uint8_t string = (uint8_t) RTC_TIME_GetHour();
+		Get_RTC_Calendar(strTime, strDate);
+		// test(strTime);
+		LCD_DisplayString(strTime);
 	}
 }
