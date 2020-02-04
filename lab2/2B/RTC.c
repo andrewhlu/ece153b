@@ -66,10 +66,10 @@ void RTC_Init(void) {
 	// Configure the Date 
 	/* Note: __LL_RTC_CONVERT_BIN2BCD helper macro can be used if user wants to */
 	/*       provide directly the decimal value:                                */
-	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x31, RTC_MONTH_MARCH, 0x20); /* STUB (Wednesday January 1, 2020): Fill in current date */
+	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x05, RTC_MONTH_FEBRUARY, 0x20); /* STUB (Wednesday February 5, 2020): Fill in current date */
 	
 	// Configure the Time 
-	RTC_Set_Time(RTC_TR_PM, 0x10, 0x33, 0x05); /* STUB (7:00:00 PM): Fill in current time */
+	RTC_Set_Time(RTC_TR_PM, 0x07, 0x00, 0x00); /* STUB (7:00:00 PM): Fill in current time */
   
 	// Exit of initialization mode 
 	RTC->ISR &= ~RTC_ISR_INIT;
