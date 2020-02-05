@@ -17,33 +17,6 @@ uint32_t volatile overflowCount = 0;
 uint32_t volatile timeInterval = 0;
 
 void Input_Capture_Setup() {
-	// TODO
-}
-
-void TIM4_IRQHandler(void) {
-	if((TIM4 -> SR) & TIM_SR_CC1IF) {
-		// An edge triggered this interrupt
-		if((GPIOB -> IDR) & GPIO_IDR_ID6) {
-			// A rising edge triggered this interrupt, store the counter value into lastValue
-			lastValue = (TIM4 -> CCR1) & TIM_CCR1_CCR1;
-		}
-		else {
-			// A falling edge triggered this interrupt, store the counter value into currentValue
-			// and calculate the time interval
-			currentValue = (TIM4 -> CCR1) & TIM_CCR1_CCR1;
-			timeInterval = currentValue - lastValue;
-		}
-	}
-	else if((TIM4 -> SR) & TIM_SR_UIF) {
-		// A counter overflow triggered this interrupt
-		overflowCount++;
-	}
-
-	// Clear the update interrupt flag.
-	TIM4 -> SR &= ~TIM_SR_UIF;
-}
-
-void Trigger_Setup() {
 	// Enable GPIO Clock for PB6.
 	RCC -> AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
 
@@ -64,7 +37,8 @@ void Trigger_Setup() {
 	// Enable auto reload preload in the control register and set the auto reload 
 	// value to its maximum value. Set the prescaler.
 	TIM4 -> ARR |= TIM_ARR_ARR;
-	TIM4 -> PSC = (uint32_t) 15999;
+	TIM4 -> PSC = (uint32_t) 15999; // Part 1
+	// TIM4 -> PSC = (uint32_t) 15; // Part 2
 
 	// In the capture/compare mode register, set the input capture mode bits such that 
 	// the input capture is mapped to timer input 1.
@@ -96,6 +70,33 @@ void Trigger_Setup() {
 	// Enable the interrupt (TIM4_IRQn) in the NVIC and set its priority to 2.
 	NVIC_EnableIRQ(TIM4_IRQn);
 	NVIC_SetPriority(TIM4_IRQn, 2);
+}
+
+void TIM4_IRQHandler(void) {
+	if((TIM4 -> SR) & TIM_SR_CC1IF) {
+		// An edge triggered this interrupt
+		if((GPIOB -> IDR) & GPIO_IDR_ID6) {
+			// A rising edge triggered this interrupt, store the counter value into lastValue
+			lastValue = (TIM4 -> CCR1) & TIM_CCR1_CCR1;
+		}
+		else {
+			// A falling edge triggered this interrupt, store the counter value into currentValue
+			// and calculate the time interval
+			currentValue = (TIM4 -> CCR1) & TIM_CCR1_CCR1;
+			timeInterval = currentValue - lastValue;
+		}
+	}
+	else if((TIM4 -> SR) & TIM_SR_UIF) {
+		// A counter overflow triggered this interrupt
+		overflowCount++;
+	}
+
+	// Clear the update interrupt flag.
+	TIM4 -> SR &= ~TIM_SR_UIF;
+}
+
+void Trigger_Setup() {
+	// TODO
 }
 
 int main(void) {	
