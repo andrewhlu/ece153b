@@ -121,14 +121,17 @@ void Trigger_Setup() {
 	RCC -> APB2ENR |= RCC_APB2ENR_TIM1EN;
 
 	// Set the prescaler to 15.
-	TIM1 -> PSC = (uint32_t) 15;
+	TIM1 -> PSC &= ~TIM_PSC_PSC;
+	TIM1 -> PSC |= (uint32_t) 15;
 
 	// Enable auto reload preload in the control register and set the auto reload 
 	// value to its maximum value.
 	TIM1 -> CR1 |= TIM_CR1_ARPE;
-	TIM1 -> ARR |= TIM_ARR_ARR;
+	TIM1 -> ARR &= ~TIM_ARR_ARR;
+	TIM1 -> ARR |= (uint32_t) 20;
 
 	// Set the CCR value that will trigger the sensor.
+	TIM1 -> CCR2 &= ~TIM_CCR2_CCR2;
 	TIM1 -> CCR2 |= (uint32_t) 10;
 
 	// In the capture/compare mode register, set the output control mode bits such that
@@ -139,7 +142,6 @@ void Trigger_Setup() {
 	TIM1 -> CCMR1 |= TIM_CCMR1_OC2PE;
 
 	// Enable the output in the capture/compare enable register.
-	// TIM1 -> CCER &= ~TIM_CCER_CC2P; //do we need this?
 	TIM1 -> CCER |= TIM_CCER_CC2E;
 
 	// In the break and dead-time register, set the bits for main output enable and
@@ -185,7 +187,10 @@ int main(void) {
 		// sprintf(message, "%.06d", (timeInterval / 1000));
 		
 		// Code for Part C2 -- Comment out when demoing Part C1
-		sprintf(message, "%.06d", timeInterval / 58);
+		TIM1 -> BDTR |= TIM_BDTR_MOE;
+		if(timeInterval <= 25000) {
+			sprintf(message, "%.06d", timeInterval / 58);
+		}
 		
 		LCD_DisplayString((uint8_t *) message);
 	}
