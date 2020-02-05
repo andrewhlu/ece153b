@@ -36,9 +36,9 @@ void Input_Capture_Setup() {
 
 	// Enable auto reload preload in the control register and set the auto reload 
 	// value to its maximum value. Set the prescaler.
+	TIM4 -> CR1 |= TIM_CR1_ARPE;
 	TIM4 -> ARR |= TIM_ARR_ARR;
-	TIM4 -> PSC = (uint32_t) 15999; // Part 1
-	// TIM4 -> PSC = (uint32_t) 15; // Part 2
+	TIM4 -> PSC = (uint32_t) 15;
 
 	// In the capture/compare mode register, set the input capture mode bits such that 
 	// the input capture is mapped to timer input 1.
@@ -83,7 +83,8 @@ void TIM4_IRQHandler(void) {
 			// A falling edge triggered this interrupt, store the counter value into currentValue
 			// and calculate the time interval
 			currentValue = (TIM4 -> CCR1) & TIM_CCR1_CCR1;
-			timeInterval = currentValue - lastValue;
+			timeInterval = currentValue + (65536 * overflowCount) - lastValue;
+			overflowCount = 0;
 		}
 	}
 	else if((TIM4 -> SR) & TIM_SR_UIF) {
@@ -96,7 +97,66 @@ void TIM4_IRQHandler(void) {
 }
 
 void Trigger_Setup() {
-	// TODO
+	// Enable GPIO Clock for PE11.
+	RCC -> AHB2ENR |= RCC_AHB2ENR_GPIOEEN;
+
+	// Set PE11 to alternative function mode and select alternate function 1 (TIM1_CH2).
+	GPIOE -> MODER &= ~GPIO_MODER_MODE11_0;
+	GPIOE -> MODER |= GPIO_MODER_MODE11_1;
+	GPIOE -> AFR[1] |= GPIO_AFRH_AFSEL11_0;
+	GPIOE -> AFR[1] &= ~GPIO_AFRH_AFSEL11_1;
+	GPIOE -> AFR[1] &= ~GPIO_AFRH_AFSEL11_2;
+	GPIOE -> AFR[1] &= ~GPIO_AFRH_AFSEL11_3;
+
+	// Set PE11 to no pull-up, no pull-down.
+	GPIOE -> PUPDR &= ~GPIO_PUPDR_PUPD11;
+
+	// Set the output type of PE11 to push-pull.
+	GPIOE -> OTYPER &= ~GPIO_OTYPER_OT11;
+
+	// Set PE11 to very high output speed.
+	GPIOE -> OSPEEDR |= GPIO_OSPEEDR_OSPEED11;
+
+	// Enable timer 1 in RCC_APB2ENR.
+	RCC -> APB2ENR |= RCC_APB2ENR_TIM1EN;
+
+	// Set the prescaler to 15.
+	TIM1 -> PSC = (uint32_t) 15;
+
+	// Enable auto reload preload in the control register and set the auto reload 
+	// value to its maximum value.
+	TIM1 -> CR1 |= TIM_CR1_ARPE;
+	TIM1 -> ARR |= TIM_ARR_ARR;
+
+	// Set the CCR value that will trigger the sensor.
+	TIM1 -> CCR2 |= (uint32_t) 10;
+
+	// In the capture/compare mode register, set the output control mode bits such that
+	// the timer is in PWM Mode 1 and enable the output compare preload.
+	TIM1 -> CCMR1 &= ~TIM_CCMR1_OC2M;
+	TIM1 -> CCMR1 |= TIM_CCMR1_OC2M_1;
+	TIM1 -> CCMR1 |= TIM_CCMR1_OC2M_2;
+	TIM1 -> CCMR1 |= TIM_CCMR1_OC2PE;
+
+	// Enable the output in the capture/compare enable register.
+	// TIM1 -> CCER &= ~TIM_CCER_CC2P; //do we need this?
+	TIM1 -> CCER |= TIM_CCER_CC2E;
+
+	// In the break and dead-time register, set the bits for main output enable and
+	// off-state selection for run mode.
+	TIM1 -> BDTR |= TIM_BDTR_MOE;
+	TIM1 -> BDTR |= TIM_BDTR_OSSR;
+
+	// Enable update generation in the event generation register.
+	TIM1 -> EGR |= TIM_EGR_UG;
+
+	// Enable the update interrupt and clear the update interrupt flag.
+	TIM1 -> DIER |= TIM_DIER_UIE;
+	TIM1 -> SR &= ~TIM_SR_UIF;
+
+	// Set the direction of the counter and enable the counter in the control register.
+	TIM1 -> CR1 &= ~TIM_CR1_DIR;
+	TIM1 -> CR1 |= TIM_CR1_CEN;
 }
 
 int main(void) {	
@@ -122,10 +182,10 @@ int main(void) {
 	char message[6];
 	while(1) {
 		// Code for Part C1 -- Comment out when demoing Part C2
-		sprintf(message, "%.06d", timeInterval);
+		// sprintf(message, "%.06d", (timeInterval / 1000));
 		
 		// Code for Part C2 -- Comment out when demoing Part C1
-		// TODO
+		sprintf(message, "%.06d", timeInterval / 58);
 		
 		LCD_DisplayString((uint8_t *) message);
 	}
