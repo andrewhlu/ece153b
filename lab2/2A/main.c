@@ -63,11 +63,12 @@ int main() {
 	// Periodic Dimming
 	int i;
 	uint32_t arr = 1000;
-	uint32_t ccr = 0;
+	uint32_t ccr = 1000;
 	while(1) {
 		// Change duty cycle
 		TIM1 -> CCR1 = ccr % arr;
-		ccr += 1;
+		ccr -= 1;
+		if(ccr == 0) {ccr = 1000;}
 		
 		for(i=0; i<1000; ++i); // Some Delay
 	}

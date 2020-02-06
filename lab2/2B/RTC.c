@@ -1,8 +1,8 @@
 /*
  * ECE 153B - Winter 2020
  *
- * Name(s):
- * Section:
+ * Name(s): Andrew Lu, Norman Chung
+ * Section: Wednesday 7:00 - 9:50 PM
  * Lab: 2B
  */
  
@@ -66,10 +66,10 @@ void RTC_Init(void) {
 	// Configure the Date 
 	/* Note: __LL_RTC_CONVERT_BIN2BCD helper macro can be used if user wants to */
 	/*       provide directly the decimal value:                                */
-	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x05, RTC_MONTH_FEBRUARY, 0x20); /* STUB (Wednesday February 5, 2020): Fill in current date */
+	RTC_Set_Calendar_Date(RTC_WEEKDAY_WEDNESDAY, 0x07, RTC_MONTH_DECEMBER, 0x34); /* STUB (Wednesday February 5, 2020): Fill in current date */
 	
 	// Configure the Time 
-	RTC_Set_Time(RTC_TR_PM, 0x07, 0x00, 0x00); /* STUB (7:00:00 PM): Fill in current time */
+	RTC_Set_Time(RTC_TR_PM, 0x10, 0x59, 0x40); /* STUB (7:00:00 PM): Fill in current time */
   
 	// Exit of initialization mode 
 	RTC->ISR &= ~RTC_ISR_INIT;
@@ -101,7 +101,8 @@ void RTC_Init(void) {
 #define RTC_POSITION_DR_WDU   (uint32_t)POSITION_VAL(RTC_DR_WDU)
 
 void RTC_Set_Calendar_Date(uint32_t WeekDay, uint32_t Day, uint32_t Month, uint32_t Year) {
-	RTC -> DR |= (WeekDay << RTC_POSITION_DR_WDU) | Day | (Month << RTC_POSITION_DR_MU) | (Year << RTC_POSITION_DR_YU);
+	RTC -> DR &= ~(RTC_DR_YU | RTC_DR_YT | RTC_DR_WDU | RTC_DR_MT | RTC_DR_MU | RTC_DR_DT | RTC_DR_DU);
+	RTC -> DR = (Year << RTC_POSITION_DR_YU) | (WeekDay << RTC_POSITION_DR_WDU) | (Month << RTC_POSITION_DR_MU) | Day;
 }
 
 void RTC_Set_Time(uint32_t Format12_24, uint32_t Hour, uint32_t Minute, uint32_t Second) {
@@ -193,5 +194,5 @@ void Get_RTC_Calendar(char * strTime, char * strDate) {
 	sprintf((char*)strDate,"%.2d%.2d%.2d", 
 		__RTC_CONVERT_BCD2BIN(RTC_DATE_GetMonth()), 
 		__RTC_CONVERT_BCD2BIN(RTC_DATE_GetDay()), 
-		2000 + __RTC_CONVERT_BCD2BIN(RTC_DATE_GetYear()));
+		__RTC_CONVERT_BCD2BIN(RTC_DATE_GetYear()));
 }

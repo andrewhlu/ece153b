@@ -1,8 +1,8 @@
 /*
  * ECE 153B - Winter 2020
  *
- * Name(s):
- * Section:
+ * Name(s): Andrew Lu, Norman Chung
+ * Section: Wednesday 7:00 - 9:50 PM
  * Lab: 2C
  */
  
@@ -146,8 +146,7 @@ void Trigger_Setup() {
 
 	// In the break and dead-time register, set the bits for main output enable and
 	// off-state selection for run mode.
-	TIM1 -> BDTR |= TIM_BDTR_MOE;
-	TIM1 -> BDTR |= TIM_BDTR_OSSR;
+	TIM1 -> BDTR |= TIM_BDTR_MOE | TIM_BDTR_OSSR;
 
 	// Enable update generation in the event generation register.
 	TIM1 -> EGR |= TIM_EGR_UG;
@@ -187,7 +186,6 @@ int main(void) {
 		// sprintf(message, "%.06d", (timeInterval / 1000));
 		
 		// Code for Part C2 -- Comment out when demoing Part C1
-		TIM1 -> BDTR |= TIM_BDTR_MOE;
 		if(timeInterval <= 25000) {
 			sprintf(message, "%.06d", timeInterval / 58);
 		}
