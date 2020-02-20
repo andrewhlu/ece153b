@@ -29,10 +29,22 @@ int main(void) {
 	LED_Init();
 	
 	// Initialize UART -- change the argument depending on the part you are working on
-	Init_USARTx(1);
+	Init_USARTx(2);
 	
 	char rxByte;
 	while(1) {
-		// TODO
+		printf("Enter a command\n");
+		scanf("%s", &rxByte);
+		if(rxByte == 'Y'|| rxByte == 'y') {
+			Red_LED_On();
+			printf("The red LED has been turned on.\n");
+		}
+		else if(rxByte == 'N' || rxByte == 'n') {
+			Red_LED_Off();
+			printf("The red LED has been turned off.\n");
+		}
+		else {
+			printf("Try again with a valid command.\n");
+		}
 	}
 }
