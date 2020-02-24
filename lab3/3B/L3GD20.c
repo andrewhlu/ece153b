@@ -17,8 +17,19 @@ void GYRO_Init(void) {
 
 // Gyroscope IO functions
 void GYRO_IO_CS_Init(void) {
-	// TODO
-	
+	// Set GPIO pin to output mode.
+	GPIOD -> MODER |= GPIO_MODER_MODE7_0;
+	GPIOD -> MODER &= ~GPIO_MODER_MODE7_1;
+
+	// Set GPIO pin to have a push-pull output type.
+	GPIOD -> OTYPER &= ~GPIO_OTYPER_OT7;
+
+	// Set GPIO pin to very high speed.
+	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED7;
+
+	// Configure GPIO pin to use no pull-up/down resistors for I/O.
+	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD7;
+
 	// Deselect the Gyroscope
 	L3GD20_CS_HIGH;
 }
@@ -71,7 +82,17 @@ void GYRO_IO_Read(uint8_t *pBuffer, uint8_t ReadAddr, uint8_t NumByteToRead){
 	L3GD20_CS_HIGH;
 }	
 
-
 void L3GD20_Init(void) {  
-	// TODO
+	// Enable all axes and set the gyroscope to normal (active) mode. Set the data rate and 
+	// bandwidth such that the output data rate is 95 Hz with a cut-off of 25.
+	// (You should be writing to control register 1.)
+	uint8_t buffer = 0;
+	buffer |= L3GD20_Z_ENABLE | L3GD20_Y_ENABLE | L3GD20_X_ENABLE | L3GD20_MODE_ACTIVE | L3GD20_BANDWIDTH_4;
+	buffer &= ~L3GD20_OUTPUT_DATARATE_1;
+	GYRO_IO_Write(&buffer, L3GD20_CTRL_REG1_ADDR, sizeof(buffer));
+
+	// Select the 2000 dps full scale. (You should be writing to control register 4.)
+	buffer = 0;
+	buffer |= L3GD20_FULLSCALE_2000;
+	GYRO_IO_Write(&buffer, L3GD20_CTRL_REG4_ADDR, sizeof(buffer));
 }

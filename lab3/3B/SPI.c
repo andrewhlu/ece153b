@@ -20,11 +20,112 @@ extern uint8_t Rx1_Counter;
 extern uint8_t Rx2_Counter;
 
 void SPI2_GPIO_Init(void) {
-	// TODO
+	// Enable the clock (in RCC) for the GPIO pin.
+	RCC -> AHB2ENR |= RCC_AHB2ENR_GPIODEN;
+
+	// Set GPIO pins to alternative function mode (5). PD1
+	GPIOD -> MODER &= ~GPIO_MODER_MODE1_0;
+	GPIOD -> MODER |= GPIO_MODER_MODE1_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL1_0;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL1_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL1_2;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL1_3;
+
+	// Set GPIO pins to alternative function mode (5). PD3
+	GPIOD -> MODER &= ~GPIO_MODER_MODE3_0;
+	GPIOD -> MODER |= GPIO_MODER_MODE3_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL3_0;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL3_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL3_2;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL3_3;
+
+	// Set GPIO pins to alternative function mode (5). PD4
+	GPIOD -> MODER &= ~GPIO_MODER_MODE4_0;
+	GPIOD -> MODER |= GPIO_MODER_MODE4_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL4_0;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL4_1;
+	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL4_2;
+	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL4_3;
+
+	// Set GPIO pins to have a push-pull output type.
+	GPIOD -> OTYPER &= ~GPIO_OTYPER_OT1;
+	GPIOD -> OTYPER &= ~GPIO_OTYPER_OT3;
+	GPIOD -> OTYPER &= ~GPIO_OTYPER_OT4;
+
+	// Set GPIO pins to very high speed.
+	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED1;
+	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED3;
+	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED4;
+
+	// Configure  GPIO pins to use no pull-up/down resistors for I/O.
+	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD1;
+	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD3;
+	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD4;
 }
 
 void SPI_Init(void){
-	// TODO 
+	// Enable the clock for SPI2 in the peripheral clock enable register.
+	RCC -> APB1ENR1 |= RCC_APB1ENR1_SPI2EN;
+
+	// Reset SPI2 by setting the appropriate bit in the peripheral reset register. 
+	RCC -> APB1RSTR1 |= RCC_APB1RSTR1_SPI2RST;
+
+	// Clear the bits so that SPI2 does not remain in a reset state.
+	RCC -> APB1RSTR1 &= ~RCC_APB1RSTR1_SPI2RST;
+
+	// Ensure that SPI is disabled before modifying the registers.
+	SPI2 -> CR1 &= ~SPI_CR1_SPE;
+
+	// Configure the serial channel for full duplex communication.
+	SPI2 -> CR1 &= ~SPI_CR1_RXONLY;
+
+	// Configure the communication for 2-line unidirectional data mode
+	SPI2 -> CR1 &= ~SPI_CR1_BIDIMODE;
+
+	// Disable the output in bidirectional mode.
+	SPI2 -> CR1 &= ~SPI_CR1_BIDIOE;
+
+	// Set the frame format for receiving the MSB first when data is transmitted. 
+	SPI2 -> CR1 &= ~SPI_CR1_LSBFIRST;
+
+	// Set the data length to 8 bits.
+	SPI2 -> CR2 &= ~SPI_CR2_DS;
+	SPI2 -> CR2 |= SPI_CR2_DS_0;
+	SPI2 -> CR2 |= SPI_CR2_DS_1;
+	SPI2 -> CR2 |= SPI_CR2_DS_2;
+
+	// Set the frame format to be in SPI Motorola mode.
+	SPI2 -> CR2 &= ~SPI_CR2_FRF;
+
+	// Set the clock polarity to 0 (the clock will go to 0 when idle).
+	SPI2 -> CR1 &= ~SPI_CR1_CPOL;
+
+	// Set the clock phase such that the first clock transition is the first data capture edge.
+	SPI2 -> CR1 &= ~SPI_CR1_CPHA;
+
+	// Set the baud rate prescaler to 16.
+	SPI2 -> CR1 &= ~SPI_CR1_BR;
+	SPI2 -> CR1 |= SPI_CR1_BR_0;
+	SPI2 -> CR1 |= SPI_CR1_BR_1;
+
+	// Disable CRC calculation.
+	SPI2 -> CR1 &= ~SPI_CR1_CRCEN;
+
+	// Set the board to operate in master mode.
+	SPI2 -> CR1 |= SPI_CR1_MSTR;
+	
+	// Enable software slave management and NSS pulse management.
+	SPI2 -> CR1 |= SPI_CR1_SSM;
+	SPI2 -> CR2 |= SPI_CR2_NSSP;
+
+	// Set the internal slave select bit
+	SPI2 -> CR1 |= SPI_CR1_SSI;
+
+	// Set the FIFO reception threshold to 1/4 (8 bit).
+	SPI2 -> CR2 |= SPI_CR2_FRXTH;
+
+	// Enable SPI.
+	SPI2 -> CR1 |= SPI_CR1_SPE;
 }
  
 void SPI_Write(SPI_TypeDef * SPIx, uint8_t *txBuffer, uint8_t * rxBuffer, int size) {
