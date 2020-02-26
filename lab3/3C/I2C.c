@@ -16,40 +16,38 @@ extern void Error_Handler(void);
 //                        I2C GPIO Initialization
 //===============================================================================
 void I2C_GPIO_Init(void) {
-	// TODO
-
 	// Enable the clock (in RCC) for the GPIO pin.
 	RCC -> AHB2ENR |= RCC_AHB2ENR_GPIOBEN;
 
 	// Set GPIO pins to alternative function mode (4). PB6
-	GPIOD -> MODER &= ~GPIO_MODER_MODE1_0;
-	GPIOD -> MODER |= GPIO_MODER_MODE1_1;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL1_0;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL1_1;
-	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL1_2;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL1_3;
+	GPIOB -> MODER &= ~GPIO_MODER_MODE6_0;
+	GPIOB -> MODER |= GPIO_MODER_MODE6_1;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL6_0;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL6_1;
+	GPIOB -> AFR[0] |= GPIO_AFRL_AFSEL6_2;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL6_3;
 
 	// Set GPIO pins to alternative function mode (4). PB7
-	GPIOD -> MODER &= ~GPIO_MODER_MODE3_0;
-	GPIOD -> MODER |= GPIO_MODER_MODE3_1;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL3_0;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL3_1;
-	GPIOD -> AFR[0] |= GPIO_AFRL_AFSEL3_2;
-	GPIOD -> AFR[0] &= ~GPIO_AFRL_AFSEL3_3;
+	GPIOB -> MODER &= ~GPIO_MODER_MODE7_0;
+	GPIOB -> MODER |= GPIO_MODER_MODE7_1;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL7_0;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL7_1;
+	GPIOB -> AFR[0] |= GPIO_AFRL_AFSEL7_2;
+	GPIOB -> AFR[0] &= ~GPIO_AFRL_AFSEL7_3;
 
 	// Set GPIO pins to have a open-drain output type.
-	GPIOD -> OTYPER |= GPIO_OTYPER_OT6;
-	GPIOD -> OTYPER |= GPIO_OTYPER_OT7;
+	GPIOB -> OTYPER |= GPIO_OTYPER_OT6;
+	GPIOB -> OTYPER |= GPIO_OTYPER_OT7;
 
 	// Set GPIO pins to very high speed.
-	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED6;
-	GPIOD -> OSPEEDR |= GPIO_OSPEEDR_OSPEED7;
+	GPIOB -> OSPEEDR |= GPIO_OSPEEDR_OSPEED6;
+	GPIOB -> OSPEEDR |= GPIO_OSPEEDR_OSPEED7;
 
 	// Configure  GPIO pins to use pull-up resistors for I/O.
-	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD6;
-	GPIOD -> PUPDR |= GPIO_PUPDR_PUPD6_0;
-	GPIOD -> PUPDR &= ~GPIO_PUPDR_PUPD7;
-	GPIOD -> PUPDR |= GPIO_PUPDR_PUPD7_0;
+	GPIOB -> PUPDR &= ~GPIO_PUPDR_PUPD6;
+	GPIOB -> PUPDR |= GPIO_PUPDR_PUPD6_0;
+	GPIOB -> PUPDR &= ~GPIO_PUPDR_PUPD7;
+	GPIOB -> PUPDR |= GPIO_PUPDR_PUPD7_0;
 }
 	
 #define I2C_TIMINGR_PRESC_POS	28
@@ -64,15 +62,13 @@ void I2C_GPIO_Init(void) {
 void I2C_Initialization(void){
 	uint32_t OwnAddr = 0x52;
 	
-	// TODO
-
 	// Enable the clock for I2C1 in the peripheral clock enable register.
 	RCC -> APB1ENR1 |= RCC_APB1ENR1_I2C1EN;
 
 	// Set the system clock as the clock source for I2C1 in the peripherals
 	// independent clock configuration register
-	RCC_CCIPR &= ~RCC_CCIPR_I2C1SEL;
-	RCC_CCIPR |= RCC_CCIPR_I2C1SEL_0;
+	RCC -> CCIPR &= ~RCC_CCIPR_I2C1SEL;
+	RCC -> CCIPR |= RCC_CCIPR_I2C1SEL_0;
 
 	// Reset I2C1 by setting bits in the peripheral reset register.
 	// After doing so, clear the bits so that I2C1 does not remain in a reset state.
@@ -101,7 +97,29 @@ void I2C_Initialization(void){
 	I2C1 -> CR2 |= I2C_CR2_AUTOEND;
 	I2C1 -> CR2 |= I2C_CR2_NACK;
 
+	// Set the values in the timing register
+	I2C1 -> TIMINGR = 0; // resetting timingr
+	I2C1 -> TIMINGR |= 0x7 << I2C_TIMINGR_PRESC_POS; // PRESC
+	I2C1 -> TIMINGR |= 0xA << I2C_TIMINGR_SCLDEL_POS; // SCLDEL
+	I2C1 -> TIMINGR |= 0xC << I2C_TIMINGR_SDADEL_POS; // SDADEL
+	I2C1 -> TIMINGR |= 0x28 << I2C_TIMINGR_SCLH_POS; // SCLH
+	I2C1 -> TIMINGR |= 0x2E; // SCLL
 
+	// Set your own address in the own address registers. To modify the address,
+	// you must first disable the own address
+	I2C1 -> OAR1 &= ~I2C_OAR1_OA1EN;
+
+	// Set own address to 7-bit mode
+	I2C1 -> OAR1 &= ~I2C_OAR1_OA1MODE;
+
+	// Write the own address that you want to use
+	I2C1 -> OAR1 = OwnAddr << 1;
+
+	// Enable own address
+	I2C1 -> OAR1 |= I2C_OAR1_OA1EN;
+
+	// Enable I2C in the control register
+	I2C1 -> CR1 |= I2C_CR1_PE;
 }
 
 //===============================================================================
