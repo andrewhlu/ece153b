@@ -37,7 +37,16 @@ int main(void) {
 
 		// Next, get the measurement
 		I2C_ReceiveData(I2C1, SlaveAddress, Data_Receive, 1);
-		sprintf(message, "%6d", Data_Receive[0]);
+		int8_t measurement = Data_Receive[0];
+
+		if(measurement & 0x80) {
+			// The number is in negative 2s complement, convert it to negative decimal
+			measurement = ~measurement;
+			measurement += 0x01;
+			measurement *= -1;
+		}
+
+		sprintf(message, "%6d", measurement);
 
 		// Print Temperature to LCD
 		LCD_DisplayString(message);
